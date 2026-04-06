@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradeMentor Chatbot</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070d12;--surface:#0c1519;--surface2:#111d23;--border:#182530;--border2:#1e3040;--accent:#00e5b4;--accent2:#00aaff;--red:#ff4d5e;--text:#ddeaf5;--text2:#7a9bb5;--text3:#3d5a70;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,180,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,180,0.025) 1px,transparent 1px);background-size:36px 36px;pointer-events:none;z-index:0;}
+header{position:relative;z-index:10;background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:58px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;}
+.logo-text{font-family:'Space Mono',monospace;font-size:16px;font-weight:700;color:var(--text);}
+.logo-text span{color:var(--accent);}
+.badge{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);font-family:'Space Mono',monospace;background:var(--surface2);border:1px solid var(--border2);padding:4px 12px;border-radius:20px;}
+.dot{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.chips-bar{position:relative;z-index:10;background:var(--surface2);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;gap:6px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;}
+.chips-bar::-webkit-scrollbar{display:none;}
+.chip{flex-shrink:0;padding:4px 13px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.chip:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,229,180,0.07);}
+.main{display:flex;flex:1;overflow:hidden;position:relative;z-index:1;}
+.sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}
+.sec{padding:16px 14px 6px;}
+.sec-lbl{font-family:'Space Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;}
+.sitem{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;cursor:pointer;transition:all .2s;margin-bottom:2px;font-size:13px;color:var(--text2);border:1px solid transparent;}
+.sitem:hover{background:var(--surface2);color:var(--text);border-color:var(--border2);}
+.sdiv{height:1px;background:var(--border);margin:6px 14px;}
+.mkt{margin:10px;padding:14px;background:var(--surface2);border:1px solid var(--border2);border-radius:11px;}
+.mkt-title{font-family:'Space Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;}
+.mkt-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;font-size:12px;}
+.mkt-up{color:var(--accent);font-family:'Space Mono',monospace;font-size:11px;}
+.mkt-dn{color:var(--red);font-family:'Space Mono',monospace;font-size:11px;}
+.mkt-note{font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;margin-top:6px;}
+.chat-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.msgs{flex:1;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:18px;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}
+.msg-row{display:flex;gap:10px;animation:fadeup .3s ease;}
+.msg-row.user{flex-direction:row-reverse;}
+@keyframes fadeup{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.av{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;margin-top:2px;}
+.av.bot{background:rgba(0,229,180,0.08);border:1px solid var(--border2);}
+.av.user{background:rgba(240,165,0,0.08);border:1px solid rgba(240,165,0,0.2);}
+.bubble{max-width:74%;padding:13px 16px;border-radius:14px;font-size:14px;line-height:1.75;}
+.bubble.bot{background:var(--surface);border:1px solid var(--border2);border-top-left-radius:3px;color:var(--text);}
+.bubble.user{background:linear-gradient(135deg,rgba(0,229,180,.1),rgba(0,170,255,.1));border:1px solid rgba(0,229,180,0.22);border-top-right-radius:3px;text-align:right;}
+.bubble h1{font-size:15px;font-weight:600;color:var(--accent);margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--border2);font-family:'Space Mono',monospace;}
+.bubble h2,.bubble h3{font-size:13px;font-weight:600;color:var(--accent2);margin:12px 0 5px;}
+.bubble strong{color:var(--accent);font-weight:600;}
+.bubble em{color:var(--text2);}
+.bubble p{margin-bottom:7px;}
+.bubble p:last-child{margin-bottom:0;}
+.bubble ul,.bubble ol{padding-left:16px;margin:5px 0;}
+.bubble li{margin-bottom:3px;}
+.bubble code{font-family:'Space Mono',monospace;font-size:11px;background:var(--surface2);border:1px solid var(--border2);padding:2px 5px;border-radius:3px;color:var(--accent);}
+.bubble pre{background:var(--surface2);border:1px solid var(--border2);border-radius:7px;padding:10px 12px;margin:8px 0;overflow-x:auto;font-family:'Space Mono',monospace;font-size:11px;color:var(--accent2);line-height:1.6;}
+.bubble table{border-collapse:collapse;width:100%;margin:10px 0;font-size:12px;}
+.bubble th{background:var(--surface2);color:var(--accent);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.5px;padding:7px 10px;text-align:left;border:1px solid var(--border2);font-weight:700;}
+.bubble td{padding:6px 10px;border:1px solid var(--border);color:var(--text2);vertical-align:top;}
+.bubble tr:nth-child(even) td{background:rgba(255,255,255,0.02);}
+.typing-row{display:flex;gap:10px;}
+.typing-bubble{display:flex;gap:4px;padding:13px 16px;background:var(--surface);border:1px solid var(--border2);border-radius:14px;border-top-left-radius:3px;}
+.tdot{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:tdots 1.2s ease infinite;}
+.tdot:nth-child(2){animation-delay:.2s;}
+.tdot:nth-child(3){animation-delay:.4s;}
+@keyframes tdots{0%,60%,100%{transform:translateY(0);opacity:.4;}30%{transform:translateY(-6px);opacity:1;}}
+.input-area{padding:14px 28px 18px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0;}
+.input-wrap{display:flex;gap:8px;background:var(--surface2);border:1px solid var(--border2);border-radius:13px;padding:5px 5px 5px 16px;transition:border-color .2s,box-shadow .2s;}
+.input-wrap:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,229,180,0.07);}
+#inp{flex:1;background:none;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:8px 0;resize:none;}
+#inp::placeholder{color:var(--text3);}
+#btn{width:40px;height:40px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+#btn:hover{transform:scale(1.05);}
+#btn:active{transform:scale(0.96);}
+#btn svg{width:17px;height:17px;fill:#04120e;}
+.hint{text-align:center;font-size:11px;color:var(--text3);margin-top:8px;font-family:'Space Mono',monospace;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+@media(max-width:768px){.sidebar{display:none;}.msgs{padding:14px;}.input-area{padding:10px 14px 14px;}.bubble{max-width:90%;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">📊</div>
+    <span class="logo-text">Trade<span>Mentor</span></span>
+  </div>
+  <div class="badge"><div class="dot"></div>LIVE</div>
+</header>
+
+<div class="chips-bar" id="chipsBar">
+  <button class="chip" data-q="Scalping kya hai?">⚡ Scalping</button>
+  <button class="chip" data-q="Swing Trading explain karo">🌊 Swing Trading</button>
+  <button class="chip" data-q="Intraday Trading kya hai?">📈 Intraday</button>
+  <button class="chip" data-q="Long-Term Investment kya hai?">🏦 Long-Term</button>
+  <button class="chip" data-q="Price Action kya hai?">🕯️ Price Action</button>
+  <button class="chip" data-q="SMC kya hai?">💡 SMC</button>
+  <button class="chip" data-q="ICT kya hai?">🎯 ICT</button>
+  <button class="chip" data-q="Footprint Analysis kya hai?">👣 Footprint</button>
+  <button class="chip" data-q="Beginners ke liye best style kaunsa hai?">🌱 Beginners</button>
+  <button class="chip" data-q="Swing vs Intraday compare karo">⚖️ Compare</button>
+  <button class="chip" data-q="Risk Management kya hai?">🛡️ Risk</button>
+</div>
+
+<div class="main">
+  <div class="sidebar" id="sidebar">
+    <div class="sec">
+      <div class="sec-lbl">Trading Styles</div>
+      <div class="sitem" data-q="Scalping explain karo">⚡ Scalping</div>
+      <div class="sitem" data-q="Swing Trading explain karo">🌊 Swing Trading</div>
+      <div class="sitem" data-q="Intraday Trading explain karo">📈 Intraday Trading</div>
+      <div class="sitem" data-q="Long-Term Investment explain karo">🏦 Long-Term</div>
+    </div>
+    <div class="sdiv"></div>
+    <div class="sec">
+      <div class="sec-lbl">Techniques</div>
+      <div class="sitem" data-q="Price Action explain karo">🕯️ Price Action</div>
+      <div class="sitem" data-q="SMC Smart Money Concepts explain karo">💡 SMC</div>
+      <div class="sitem" data-q="ICT Inner Circle Trader explain karo">🎯 ICT</div>
+      <div class="sitem" data-q="Footprint Analysis explain karo">👣 Footprint Analysis</div>
+    </div>
+    <div class="sdiv"></div>
+    <div class="sec">
+      <div class="sec-lbl">Quick Guides</div>
+      <div class="sitem" data-q="Beginners ke liye best trading style kaunsa hai?">🌱 Beginners Guide</div>
+      <div class="sitem" data-q="Risk Management explain karo">🛡️ Risk Management</div>
+      <div class="sitem" data-q="Swing vs Intraday compare karo">⚖️ Compare Styles</div>
+    </div>
+    <div class="sdiv"></div>
+    <div class="mkt">
+      <div class="mkt-title">Market Pulse</div>
+      <div class="mkt-row"><span style="color:var(--text2);font-size:12px">NIFTY 50</span><span class="mkt-up">▲ 22,456</span></div>
+      <div class="mkt-row"><span style="color:var(--text2);font-size:12px">SENSEX</span><span class="mkt-up">▲ 73,890</span></div>
+      <div class="mkt-row"><span style="color:var(--text2);font-size:12px">BANK NIFTY</span><span class="mkt-dn">▼ 47,210</span></div>
+      <div class="mkt-row"><span style="color:var(--text2);font-size:12px">GOLD</span><span class="mkt-up">▲ 72,340</span></div>
+      <div class="mkt-note">* Indicative only</div>
+    </div>
+  </div>
+
+  <div class="chat-wrap">
+    <div class="msgs" id="msgs"></div>
+    <div class="input-area">
+      <div class="input-wrap">
+        <textarea id="inp" rows="1" placeholder="Koi bhi trading topic poochho..."></textarea>
+        <button id="btn">
+          <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+      </div>
+      <div class="hint">Enter = Send &nbsp;·&nbsp; Shift+Enter = New Line</div>
+    </div>
+  </div>
+</div>
+
+<script>
+var KB = {
+  scalping:"**Scalping** trading ka sabse fast style hai!\n\n🕐 **Timeframe:** 1-minute se 5-minute charts\n💰 **Profit per trade:** Bahut chhota (kuch pips ya cents)\n📊 **Trades per day:** 20 se 100+ trades\n🧠 **Skill Level:** Advanced\n\n**Kaise kaam karta hai:**\nScalpers tiny price movements dhundhte hain aur seconds se minutes mein trade open/close karte hain. Zyada trades = zyada overall profit.\n\n**Key Tools:**\n- Level 2 quotes\n- 1-min aur 3-min candlestick charts\n- Tight bid-ask spreads\n- Fast execution platform\n\n**Pros:**\n✅ Quick profit — koi overnight risk nahi\n✅ Din mein bahut opportunities\n\n**Cons:**\n❌ Bahut stressful aur time-intensive\n❌ High transaction costs\n❌ Extreme focus chahiye\n\n⚠️ **Beginners ke liye recommend nahi!**",
+  swing:"**Swing Trading** ek popular middle-ground style hai!\n\n🕐 **Timeframe:** Daily aur 4-hour charts\n💰 **Profit per trade:** 5% se 20%+\n📊 **Trades per month:** 5 se 20\n🧠 **Skill Level:** Beginner se Intermediate\n\n**Kaise kaam karta hai:**\nSwing traders uptrend mein pullback ka wait karte hain, phir buy karte hain expecting price wapas swing karega. Hold karte hain kuch din se hafte.\n\n**Key Concepts:**\n- Support & Resistance zones\n- Trend identification\n- RSI aur MACD indicators\n- Risk-Reward ratio (1:2 ya 1:3)\n\n**Pros:**\n✅ Day trading se kam screen time\n✅ Job ke saath bhi ho sakta hai\n✅ Bade potential profits per trade\n\n**Cons:**\n❌ Overnight aur weekend risk\n❌ Patience chahiye\n\n**Best for:** Working professionals ya beginners!",
+  intraday:"**Intraday Trading** mein saare trades ek hi din mein open aur close hote hain!\n\n🕐 **Timeframe:** 5-min, 15-min, 1-hour charts\n💰 **Profit per trade:** Small se Moderate\n📊 **Trades per day:** 2 se 10\n🧠 **Skill Level:** Intermediate\n\n**Ek typical Intraday din:**\n1. Pre-market news aur gaps check karo\n2. Kal ke key levels identify karo\n3. Market open wait karo (pehle 15-30 min choppy)\n4. Breakout confirm hone pe trade lo\n5. Target ya stop-loss pe exit karo\n6. 3:30 PM se pehle sab close karo\n\n**Pros:**\n✅ Overnight risk nahi\n✅ Clear daily results\n✅ Up aur down dono mein profit\n\n**Cons:**\n❌ 4-6 ghante screen dekhna padta hai\n❌ Emotionally taxing",
+  longterm:"**Long-Term Investment** — Warren Buffett ki strategy!\n\n🕐 **Timeframe:** Monthly/Weekly charts + Fundamentals\n💰 **Profit:** 15% se 100%+ over months/years\n📊 **Investments per year:** 5 se 20\n🧠 **Skill Level:** Beginner-Friendly\n\n**Kya analyze karte hain:**\n- Revenue growth, profit margins, debt\n- Company ka competitive advantage\n- Management quality\n- P/E ratio, P/B ratio\n\n**Compounding ki Power:**\n₹1,00,000 @ 15% annual return:\n- 10 saal → ₹4,04,556\n- 20 saal → ₹16,36,654\n- 30 saal → ₹66,21,177 🚀\n\n**Pros:**\n✅ Low stress, minimal screen time\n✅ Tax advantages\n✅ Proven wealth-building strategy\n\n**Best for:** Sabhi log jo steady wealth banana chahte hain!",
+  priceaction:"**Price Action** — Sirf pure price padhna, koi indicators nahi!\n\n🧠 **Level:** Beginner se Advanced\n\n**Key Concepts:**\n\n**1. Candlestick Patterns:**\n- Doji — Market indecision\n- Hammer — Potential reversal\n- Engulfing Candle — Strong signal\n- Pin Bar — Sharp rejection\n\n**2. Support & Resistance:**\n- Support = Price floor (buyers step in)\n- Resistance = Price ceiling (sellers step in)\n- Jab break ho — roles swap ho jaate hain!\n\n**3. Trend Structure:**\n- Uptrend = Higher Highs + Higher Lows\n- Downtrend = Lower Highs + Lower Lows\n- Sideways = Equal highs and lows\n\n**4. Chart Patterns:**\n- Head & Shoulders (reversal)\n- Double Top / Bottom (reversal)\n- Bull/Bear Flag (continuation)\n- Triangle (breakout)\n\n**Pro Tip:** Price Action + Key Levels + Trend = Powerful combination!",
+  smc:"**SMC (Smart Money Concepts)** — Banks aur institutions ki tarah trade karo!\n\n🧠 **Level:** Intermediate se Advanced\n\n**Core Idea:**\nInstitutions markets move karte hain. Retail traders ko trap kiya jaata hai. SMC sikhata hai — recognize karo aur unke SAATH trade karo!\n\n**Key Concepts:**\n\n**1. Order Blocks (OB):**\nAreas jahan institutions ne large orders place kiye.\n- Bullish OB: Strong up-move se pehle last bearish candle\n- Bearish OB: Strong down-move se pehle last bullish candle\n\n**2. Break of Structure (BOS) & CHOCH:**\n- BOS = Trend continuation\n- CHOCH = Trend reversal signal\n\n**3. Fair Value Gap (FVG):**\nPrice itni tezi se move karta hai ki gap create hota hai. Price wapas fill karne aata hai!\n\n**4. Liquidity:**\nRetail stop-losses = Institutions ki liquidity. Banks stops grab karte hain phir real move!\n\n**5. Premium & Discount:**\n- Discount mein Buy karo\n- Premium mein Sell karo\n\n**Pros:** High accuracy when done correctly\n**Cons:** Steep learning curve, practice chahiye",
+  ict:"**ICT (Inner Circle Trader)** — Michael J. Huddleston ki methodology!\n\n🧠 **Level:** Advanced\n\n**Core Philosophy:**\nMarkets random nahi hain — algorithmically driven hain liquidity hunt karne ke liye!\n\n**Key Concepts:**\n\n**1. Power of 3 (AMD):**\n- Accumulation — Smart money quietly positions build karta hai\n- Manipulation — Price wrong direction mein push (retail ko trap karne)\n- Distribution — Real move hoti hai!\n\n**2. ICT Killzones (Best Times):**\n- London Open: 2:00 AM – 5:00 AM EST\n- New York Open: 7:00 AM – 10:00 AM EST\n- London Close: 10:00 AM – 12:00 PM EST\n\n**3. Optimal Trade Entry (OTE):**\nFibonacci 62%-79% zone mein entry lo.\n\n**4. ICT Daily Bias:**\nWeekly/Daily analysis se decide karo — aaj buy ya sell?\n\n**Free Resources:**\nYouTube pe 'ICT 2022 Mentorship' search karo — FREE hai!\n\n**Pros:** Extremely detailed, market manipulation samajhna\n**Cons:** Bahut complex — months lagenge seekhne mein",
+  footprint:"**Footprint Analysis** — Har candlestick ka X-ray view!\n\n🧠 **Level:** Advanced\n🛠️ **Tools:** Bookmap, Sierra Chart, Jigsaw Trading\n\n**Kya dikhta hai:**\nHar price level pe exact buyers vs sellers volume!\n\n**Example:**\n```\n18505: 450 x 120  (Strong Buying)\n18504: 380 x 890  (Strong Selling)\n18502: 560 x 180  (Strong Buying)\n```\n\n**Key Signals:**\n\n**1. Delta:**\n- Delta = Ask Volume minus Bid Volume\n- Positive = More buyers\n- Negative = More sellers\n- Price upar + Delta negative = Reversal signal!\n\n**2. Imbalances:**\nEk side 3x zyada ho — strong conviction!\n\n**3. High Volume Nodes (HVN):**\nBhut zyada trading yahan hua — strong support/resistance!\n\n**4. Low Volume Nodes (LVN):**\nKam trading — price yahaan se FAST move karti hai!\n\n**Pros:** Deepest market insight, institutional orders dikhte hain\n**Cons:** Expensive software, beginners ke liye nahi"
+};
+
+function getReply(msg) {
+  var m = msg.toLowerCase();
+  if (/^(hi|hello|hey|helo|namaste|namaskar|hii|start|kya hal|kaise ho|hy|hlo)/.test(m) || m.length < 4) {
+    return "👋 **TradeMentor mein aapka swagat hai!**\n\nMain aapka personal trading education assistant hoon.\n\n**Main kya sikha sakta hoon:**\n\n📌 **Trading Styles:**\n- ⚡ Scalping\n- 🌊 Swing Trading\n- 📈 Intraday Trading\n- 🏦 Long-Term Investment\n\n📌 **Advanced Techniques:**\n- 🕯️ Price Action\n- 💡 SMC — Smart Money Concepts\n- 🎯 ICT — Inner Circle Trader\n- 👣 Footprint Analysis\n\nKoi bhi topic type karo ya sidebar ke buttons click karo! 🚀";
+  }
+  if (/beginner|start karna|naya|new hoon|shuru|kahan se|pehli baar|best style|konsa style/.test(m)) {
+    return "🌱 **Beginners ke liye Best Trading Styles**\n\n**Ranking — Easiest se Hardest:**\n\n**1. 🥇 Long-Term Investment — Sabse Aasaan**\nQuality assets kharido, hold karo, wealth grow hogi.\n\n**2. 🥈 Swing Trading — Beginner-Friendly**\nHafte mein kuch trades, analyze karne ka time milta hai.\n\n**3. 🥉 Intraday Trading — Moderate Difficulty**\nMarket hours mein focus chahiye.\n\n**4. ❌ Scalping — Abhi Mat Karo**\nExtremely fast aur stressful. Experience ke baad try karo.\n\n**Recommended Learning Path:**\n\nStep 1 → Long-Term Investing seekho\nStep 2 → Price Action basics seekho\nStep 3 → Paper trading (fake paise se practice)\nStep 4 → Swing Trading with real money\nStep 5 → Intraday (experience ke baad)\nStep 6 → SMC / ICT / Footprint (advanced)\n\n**Golden Rule:** Pehle 3 mahine paper trading karo! 📝";
+  }
+  if (/risk|money management|position size|capital|stop.?loss/.test(m)) {
+    return "🛡️ **Risk Management — Sabse Important Skill!**\n\n**Golden Rules:**\n\n**1. Sirf 1-2% Per Trade Risk Karo**\nAgar account ₹1,00,000 hai:\n- Maximum risk per trade = ₹1,000-₹2,000\n- 10 losing trades bhi sirf 10-20% lose karengi\n\n**2. Hamesha Stop-Loss Use Karo**\nBina stop-loss ke kabhi trade mat karo!\n\n**3. Risk-Reward Ratio**\n- Minimum 1:2 rakho\n- Matlab: 50% galat bhi ho toh profit ho sakta hai!\n\n**4. Revenge Trading Mat Karo**\nLoss ke baad emotionally wapas mat jao. Break lo!\n\n**5. Emergency Fund Alag Rakho**\nSirf woh paise use karo jo lose ho sakein.\n\n**Formula:**\nPosition Size = (Account x Risk%) divided by Stop-Loss Amount\n\nExample:\n₹1,00,000 account, 1% risk, ₹50 stop =\n₹1,000 / ₹50 = 20 shares ✅";
+  }
+  if ((m.includes('swing') && m.includes('intraday')) || (m.includes('compare') && (m.includes('swing') || m.includes('intraday')))) {
+    return "⚖️ **Swing Trading vs Intraday Trading**\n\n| Feature | Swing Trading | Intraday Trading |\n|---|---|---|\n| **Hold Time** | Days to weeks | Minutes to hours |\n| **Time Needed** | 1-2 hrs/day | 4-6 hrs/day |\n| **Stress Level** | Moderate | High |\n| **Overnight Risk** | Haan | Nahi |\n| **Profit/Trade** | 5-20% | 0.5-3% |\n| **Best Charts** | Daily, 4H | 15-min, 1H |\n| **Beginner Friendly** | Yes | Thoda |\n\n**Verdict:**\n- Job hai aur time kam hai → Swing Trading\n- Full time market dekh sakte ho → Intraday\n- Naye ho → Swing se shuru karo!";
+  }
+  if (m.includes('scalp')) return "# ⚡ Scalping\n\n" + KB.scalping;
+  if (m.includes('swing')) return "# 🌊 Swing Trading\n\n" + KB.swing;
+  if (m.includes('intraday') || m.includes('day trad')) return "# 📈 Intraday Trading\n\n" + KB.intraday;
+  if (m.includes('long') && (m.includes('invest') || m.includes('term'))) return "# 🏦 Long-Term Investment\n\n" + KB.longterm;
+  if (m.includes('price action') || m.includes('candlestick') || m.includes('support') || m.includes('resistance')) return "# 🕯️ Price Action\n\n" + KB.priceaction;
+  if (m.includes('smc') || m.includes('smart money') || m.includes('order block')) return "# 💡 Smart Money Concepts (SMC)\n\n" + KB.smc;
+  if (m.includes('ict') || m.includes('inner circle') || m.includes('killzone')) return "# 🎯 ICT — Inner Circle Trader\n\n" + KB.ict;
+  if (m.includes('footprint') || m.includes('order flow') || m.includes('delta')) return "# 👣 Footprint Analysis\n\n" + KB.footprint;
+  return "🤔 **Samjha nahi!** Mujhe trading ke baare mein poochho.\n\n**Topics available hain:**\n- ⚡ Scalping\n- 🌊 Swing Trading\n- 📈 Intraday Trading\n- 🏦 Long-Term Investment\n- 🕯️ Price Action\n- 💡 SMC\n- 🎯 ICT\n- 👣 Footprint Analysis\n- 🌱 Beginners Guide\n- 🛡️ Risk Management\n\nUpar ke buttons use karo ya topic ka naam type karo! 😊";
+}
+
+function md(t) {
+  var h = t;
+  h = h.replace(/\|(.+)\|\n\|[-| :]+\|\n((?:\|.+\|\n?)*)/g, function(_, hdr, rows) {
+    var ths = hdr.split('|').filter(function(c){return c.trim();}).map(function(c){return '<th>'+c.trim()+'</th>';}).join('');
+    var trs = rows.trim().split('\n').map(function(r){
+      var tds = r.split('|').filter(function(c){return c.trim()!=='';}).map(function(c){return '<td>'+c.trim()+'</td>';}).join('');
+      return '<tr>'+tds+'</tr>';
+    }).join('');
+    return '<table><thead><tr>'+ths+'</tr></thead><tbody>'+trs+'</tbody></table>';
+  });
+  h = h.replace(/```[\w]*\n?([\s\S]*?)```/g,'<pre>$1</pre>');
+  h = h.replace(/`([^`]+)`/g,'<code>$1</code>');
+  h = h.replace(/^# (.+)$/gm,'<h1>$1</h1>');
+  h = h.replace(/^## (.+)$/gm,'<h2>$1</h2>');
+  h = h.replace(/^### (.+)$/gm,'<h3>$1</h3>');
+  h = h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  h = h.replace(/\*(.+?)\*/g,'<em>$1</em>');
+  h = h.replace(/^[-•] (.+)$/gm,'<li>$1</li>');
+  h = h.replace(/^✅ (.+)$/gm,'<li>✅ $1</li>');
+  h = h.replace(/^❌ (.+)$/gm,'<li>❌ $1</li>');
+  h = h.replace(/^(\d+)\. (.+)$/gm,'<li>$2</li>');
+  h = h.replace(/(<li>[\s\S]*?<\/li>\n?)+/g, function(m){return '<ul>'+m+'</ul>';});
+  h = h.split('\n\n').map(function(b){
+    if(/^<(h[123]|ul|pre|table)/.test(b)) return b;
+    if(!b.trim()) return '';
+    return '<p>'+b.replace(/\n/g,'<br>')+'</p>';
+  }).join('\n');
+  return h;
+}
+
+function addMsg(role, text) {
+  var c = document.getElementById('msgs');
+  var row = document.createElement('div');
+  row.className = 'msg-row ' + role;
+  var av = document.createElement('div');
+  av.className = 'av ' + role;
+  av.textContent = role==='bot' ? '📊' : '👤';
+  var b = document.createElement('div');
+  b.className = 'bubble ' + role;
+  if (role==='bot') b.innerHTML = md(text);
+  else b.textContent = text;
+  if (role==='bot') { row.appendChild(av); row.appendChild(b); }
+  else { row.appendChild(b); row.appendChild(av); }
+  c.appendChild(row);
+  c.scrollTop = c.scrollHeight;
+}
+
+function showTyping() {
+  var c = document.getElementById('msgs');
+  var row = document.createElement('div');
+  row.className = 'typing-row'; row.id = 'tr';
+  var av = document.createElement('div');
+  av.className = 'av bot'; av.textContent = '📊';
+  var b = document.createElement('div');
+  b.className = 'typing-bubble';
+  b.innerHTML = '<div class="tdot"></div><div class="tdot"></div><div class="tdot"></div>';
+  row.appendChild(av); row.appendChild(b);
+  c.appendChild(row); c.scrollTop = c.scrollHeight;
+}
+function hideTyping() { var e = document.getElementById('tr'); if(e) e.remove(); }
+
+function sendMsg(msg) {
+  var inp = document.getElementById('inp');
+  var text = msg || inp.value.trim();
+  if (!text) return;
+  inp.value = ''; inp.style.height = 'auto';
+  addMsg('user', text);
+  showTyping();
+  setTimeout(function(){
+    hideTyping();
+    addMsg('bot', getReply(text));
+  }, 500 + Math.random()*400);
+}
+
+// Attach events after DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+  // Welcome message
+  addMsg('bot', "👋 **TradeMentor mein aapka swagat hai!**\n\nMain aapka personal trading education assistant hoon.\n\n**In topics pe poochh sakte ho:**\n\n- ⚡ **Scalping** — Ultra-fast trades\n- 🌊 **Swing Trading** — Multi-day trades\n- 📈 **Intraday Trading** — Same day trades\n- 🏦 **Long-Term Investment** — Wealth building\n- 🕯️ **Price Action** — Chart reading\n- 💡 **SMC** — Smart Money Concepts\n- 🎯 **ICT** — Inner Circle Trader\n- 👣 **Footprint Analysis** — Order flow\n\nKoi bhi topic type karo ya sidebar/buttons use karo! 🚀");
+
+  // Send button
+  document.getElementById('btn').addEventListener('click', function(){ sendMsg(); });
+
+  // Enter key
+  document.getElementById('inp').addEventListener('keydown', function(e){
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+  });
+
+  // Auto-resize textarea
+  document.getElementById('inp').addEventListener('input', function(){
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+  });
+
+  // Chip buttons
+  document.getElementById('chipsBar').addEventListener('click', function(e){
+    var chip = e.target.closest('.chip');
+    if (chip && chip.dataset.q) sendMsg(chip.dataset.q);
+  });
+
+  // Sidebar items
+  document.getElementById('sidebar').addEventListener('click', function(e){
+    var item = e.target.closest('.sitem');
+    if (item && item.dataset.q) sendMsg(item.dataset.q);
+  });
+});
+</script>
+</body>
+</html>
